@@ -8,6 +8,7 @@ import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
 import postRoutes from "./routes/post.route.js";
 import commentRoutes from "./routes/comment.route.js";
+import { errorHandler } from "./utils/error.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -33,7 +34,10 @@ mongoose
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
-app.use("/api/posts/:postId/comments", commentRoutes);
+
+app.use("/api/comments", commentRoutes);
+
+app.use(errorHandler);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

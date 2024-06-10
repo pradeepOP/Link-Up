@@ -14,6 +14,6 @@ router
   .route("/")
   .post(verifyToken, upload.single("postImage"), createPost)
   .get(getPosts);
-router.get("/:postId", verifyToken, getPostDetail);
+router.get("/:postId", getPostDetail);
 router.delete("/:postId", verifyToken, deletePost);
 export default router;

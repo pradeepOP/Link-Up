@@ -108,9 +108,9 @@ const Profile = () => {
           {/* right div */}
           <div className="flex-1 md:pt-10">
             {/* upper div */}
-            <div className="flex items-center gap-20 mb-8 md:justify-between ">
+            <div className="flex items-center gap-10 mb-8 md:gap-20 md:justify-between ">
               {user && (
-                <p className="text-xl font-semibold tracking-wider md:text-2xl">
+                <p className="font-semibold tracking-wider md:text-2xl">
                   @{user.username}
                 </p>
               )}

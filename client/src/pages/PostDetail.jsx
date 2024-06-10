@@ -4,8 +4,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Spinner, Modal } from "flowbite-react";
 import { useEffect, useState } from "react";
 import moment from "moment";
-import { RiDeleteBin5Line } from "react-icons/ri";
+import { AiOutlineDelete } from "react-icons/ai";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import CommentCard from "../components/CommentCard";
 
 const PostDetail = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -14,6 +15,9 @@ const PostDetail = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [commentBody, setCommentBody] = useState("");
+  const [comments, setComments] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,6 +32,13 @@ const PostDetail = () => {
           setLoading(false);
         } else {
           setPost(data);
+          const commentResponse = await fetch(`/api/comments/${postId}`);
+          const commentsData = await commentResponse.json();
+          if (!commentResponse.ok) {
+            setError(commentsData.message);
+          } else {
+            setComments(commentsData.comments);
+          }
           setLoading(false);
         }
       } catch (error) {
@@ -62,6 +73,53 @@ const PostDetail = () => {
       setError(error.message);
     }
   };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`/api/comments/${postId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ body: commentBody }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message);
+      } else {
+        setPost((prevPost) => ({
+          ...prevPost,
+          comments: [...(prevPost.comments || []), data],
+        }));
+        setComments([data, ...comments]);
+        setCommentBody("");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message);
+      } else {
+        setComments(comments.filter((comment) => comment._id !== commentId));
+      }
+    } catch (error) {
+      setError(error.message);
+      console.log(error);
+    }
+  };
+  const isCommentDisabled = !commentBody?.trim();
+
   return (
     <div>
       {/* container */}
@@ -87,8 +145,8 @@ const PostDetail = () => {
               </p>
             </div>
             {currentUser.fullname === post.userId.fullname ? (
-              <span className="text-xl duration-300 cursor-pointer md:text-2xl hover:text-red-400">
-                <RiDeleteBin5Line onClick={() => setShowModal(true)} />
+              <span className="text-xl duration-300 cursor-pointer md:text-2xl hover:text-red-500/90">
+                <AiOutlineDelete onClick={() => setShowModal(true)} />
               </span>
             ) : (
               <></>
@@ -109,7 +167,7 @@ const PostDetail = () => {
             <img
               src={post.postImage}
               alt="post image"
-              className="w-full h-[400px] object-cover rounded-md "
+              className="object-cover w-full h-[80%] rounded-md "
             />
 
             <div className="flex items-center gap-2 pb-3 mt-4">
@@ -125,7 +183,9 @@ const PostDetail = () => {
         {/* middle div for comment form */}
         <div className="mt-8">
           {currentUser ? (
-            <form className="px-2 border-[1px] dark:border-white bg-white/60 dark:bg-[rgb(25,36,67)]  rounded-lg border-gray-400   ">
+            <form
+              onSubmit={handleAddComment}
+              className="px-2 border-[1px] dark:border-white bg-white/60 dark:bg-[rgb(25,36,67)]  rounded-lg border-gray-400   ">
               {/* top div */}
               <div className="flex items-center gap-2 border-b border-gray-400 dark:border-white ">
                 <div>
@@ -142,11 +202,16 @@ const PostDetail = () => {
                   id="content"
                   className="w-full h-20 bg-white/60 dark:bg-[rgb(25,36,67)] focus:ring-0 border-none placeholder:text-xl placeholder:tracking-wide"
                   placeholder="Write comments......"
+                  value={commentBody}
+                  onChange={(e) => setCommentBody(e.target.value)}
                 />
               </div>
               {/* bottom div */}
               <div className="flex justify-between py-4">
-                <Button type="submit" gradientDuoTone="purpleToPink">
+                <Button
+                  type="submit"
+                  gradientDuoTone="purpleToPink"
+                  disabled={isCommentDisabled}>
                   Post
                 </Button>
               </div>
@@ -158,6 +223,20 @@ const PostDetail = () => {
         {/* bottom div for comment */}
         <div className="mt-8">
           <h1 className="text-2xl font-semibold">Comments</h1>
+          <div className="mt-4 space-y-4">
+            {comments.length > 0 ? (
+              comments.map((comment) => (
+                <CommentCard
+                  key={comment._id}
+                  comment={comment}
+                  post={post}
+                  onDelete={handleDeleteComment}
+                />
+              ))
+            ) : (
+              <p>No comments yet...</p>
+            )}
+          </div>
         </div>
       </div>
       {/* Modal */}

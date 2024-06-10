@@ -19,6 +19,7 @@ import { logoutSuccess } from "./redux/user/userSlice";
 import { checkAuthCookie } from "./utils/checkAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -31,6 +32,7 @@ const App = () => {
   // }, []);
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />

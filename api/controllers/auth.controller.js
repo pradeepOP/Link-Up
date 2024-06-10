@@ -25,13 +25,14 @@ export const signup = asyncHandler(async (req, res, next) => {
   });
   await newUser.save();
   const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "1d",
   });
   const { password: pass, ...rest } = newUser._doc;
   res
     .status(200)
     .cookie("access_token", token, {
       httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
     })
     .json(rest);
 });
@@ -51,7 +52,7 @@ export const login = asyncHandler(async (req, res, next) => {
     return next(errorHandler(400, "Invalid password"));
   }
   const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "1d",
   });
 
   const { password: pass, ...rest } = validUser._doc;
@@ -59,6 +60,7 @@ export const login = asyncHandler(async (req, res, next) => {
     .status(200)
     .cookie("access_token", token, {
       httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
     })
     .json(rest);
 });
@@ -68,12 +70,15 @@ export const google = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email });
   if (user) {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "1d",
     });
     const { password, ...rest } = user._doc;
     res
       .status(200)
-      .cookie("access_token", token, { httpOnly: true })
+      .cookie("access_token", token, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+      })
       .json(rest);
   } else {
     const generatedPassword =
@@ -91,13 +96,14 @@ export const google = asyncHandler(async (req, res, next) => {
     });
     await newUser.save();
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "1d",
     });
     const { password, ...rest } = newUser._doc;
     res
       .status(200)
       .cookie("access_token", token, {
         httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
       })
       .json(rest);
   }
